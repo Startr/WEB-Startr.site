@@ -1,6 +1,13 @@
 /*!
  * Startr Swap — swap links and forms in place, with no build step.
  *
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 Startr LLC
+ *
+ * MIT is deliberate. This file is written to be dropped into other people's
+ * static sites, and a copyleft licence would rule out the one use it exists
+ * for. See LICENSE at the root of this repository.
+ *
  * Drop it in, mark a region, and same-origin links stop reloading the page:
  *
  *   <script defer src="swap.js"></script>
