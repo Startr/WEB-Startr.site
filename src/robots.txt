@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# The CMS is not content. Keep it out of the index.
+Disallow: /admin/

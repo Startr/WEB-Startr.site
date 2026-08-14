@@ -1,0 +1,81 @@
+# Decap CMS — starter config for an Eleventy site
+#
+# Copy to config.yml and edit. Two collection shapes cover most of what an
+# 11ty site needs: `files` for global data, `folder` for content.
+#
+#   files  -> fixed YAML in src/_data/, surfaced through the data cascade
+#   folder -> markdown in a content directory, one file per entry
+#
+# Paths are relative to the repo root, not to the admin folder.
+
+backend:
+  name: github
+  repo: your-org/your-repo
+  branch: main
+  base_url: https://example.com
+  # Only needed if you host your own OAuth handler rather than using a
+  # provider's. Must return a GitHub token to the CMS.
+  auth_endpoint: /api/auth
+
+# Lets `npx decap-server` write to your working copy instead of GitHub,
+# so local edits never touch the live repo.
+local_backend: true
+
+media_folder: "src/assets/images/uploads"
+public_folder: "/assets/images/uploads"
+
+collections:
+  # ---------------------------------------------------------------
+  # Global data. Each file becomes one form. Eleventy exposes
+  # src/_data/site.yaml to templates as `site`.
+  # ---------------------------------------------------------------
+  - name: settings
+    label: "Site Settings"
+    files:
+      - file: "src/_data/site.yaml"
+        label: "Site"
+        name: site_yaml
+        fields:
+          - { label: "Title", name: "title", widget: "string" }
+          - { label: "Description", name: "description", widget: "text" }
+          - { label: "Logo", name: "logo", widget: "image", required: false }
+
+      - file: "src/_data/navigation.yaml"
+        label: "Navigation"
+        name: navigation_yaml
+        fields:
+          # A `list` of `object` is the repeatable-row pattern. `summary`
+          # controls the collapsed label for each row.
+          - label: Main
+            name: main
+            widget: list
+            summary: "{{title}} — {{href}}"
+            fields:
+              - { label: Title, name: title, widget: string }
+              - { label: Href, name: href, widget: string }
+
+  # ---------------------------------------------------------------
+  # Content. One markdown file per entry, with front matter drawn
+  # from `fields`. The `body` field becomes the markdown body.
+  # ---------------------------------------------------------------
+  - name: posts
+    label: "Posts"
+    folder: "src/posts"
+    create: true
+    extension: "md"
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    summary: "{{title}} — {{date}}"
+    sortable_fields: ["date", "title"]
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Date, name: date, widget: datetime }
+      - { label: Tags, name: tags, widget: list, required: false }
+      - { label: Hero Image, name: hero, widget: image, required: false }
+      - { label: Summary, name: summary, widget: text, required: false }
+      - { label: Body, name: body, widget: markdown }
+
+# Widgets worth knowing: string, text, markdown, number, boolean, datetime,
+# image, list, object, select, hidden. Add `required: false` to anything
+# optional — fields are required by default.
+#
+# Full reference: https://decapcms.org/docs/widgets/
