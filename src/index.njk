@@ -1,0 +1,45 @@
+---
+layout: base.njk
+title: Home
+---
+
+<p>{{ site.description }}</p>
+
+<p>
+  Edit this page at <code>src/index.njk</code>, or open
+  <a href="/admin/">the CMS</a> and edit the site without touching code.
+</p>
+
+<h2>Posts</h2>
+
+<ul>
+  {% for post in collections.posts %}
+    <li>
+      <a href="{{ post.url }}">{{ post.data.title }}</a>
+      — <small>{{ post.data.date | readableDate }}</small>
+    </li>
+  {% else %}
+    <li>No posts yet. Add one in <code>src/posts/</code> or through the CMS.</li>
+  {% endfor %}
+</ul>
+
+<h2>What is wired up</h2>
+
+<div style="--d:grid; --g:1rem; --gtc-md:1fr 1fr; --mt:1rem">
+  <div>
+    <h3>Eleventy</h3>
+    <p>Markdown and Nunjucks in, static HTML out. No client framework.</p>
+  </div>
+  <div>
+    <h3>Decap CMS</h3>
+    <p>Forms at <code>/admin</code>. Every save is a git commit.</p>
+  </div>
+  <div>
+    <h3>startr.style</h3>
+    <p>Layout through inline <code>--prop</code> attributes, mobile-first.</p>
+  </div>
+  <div>
+    <h3>Startr Swap</h3>
+    <p>Links swap in place. One script tag, one attribute.</p>
+  </div>
+</div>

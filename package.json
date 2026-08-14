@@ -1,0 +1,19 @@
+{
+  "name": "startr-site",
+  "version": "0.1.0",
+  "description": "Eleventy + Decap CMS + startr.style starter for Startr.Cloud sites",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "cd src && bun x @11ty/eleventy --serve --output=../dist",
+    "build": "cd src && NODE_ENV=production bun x @11ty/eleventy --output=../dist",
+    "buildfresh": "rm -rf dist && bun run build",
+    "admin": "bun x decap-server --port 8081 --cors & cd src && bun x @11ty/eleventy --serve --output=../dist",
+    "wrangler:dev": "wrangler pages dev dist",
+    "wrangler:deploy": "wrangler pages deploy dist"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.2",
+    "decap-server": "^3.1.4"
+  }
+}
