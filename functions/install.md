@@ -1,19 +1,46 @@
-# Installation
+# GitHub OAuth on Cloudflare Pages
 
-1. Create OAuth application at Github
-    Go to Settings -> Developer Settings and choose OAuth Apps. Create a new OAuth App. Name it anything you like. Homepage URL should be set to your site’s URL. Authorization callback URL is the important part; it, too, can be set to your homepage URL (like <https://example.com>). Other guides say to set this to the callback API endpoint, but the documented requirement is that the callback URL be a subdirectory of this URL, and using the callback URL itself didn’t work for me.
+The CMS signs in through a GitHub OAuth app. Two Cloudflare Pages Functions — `functions/api/auth.js` and `functions/api/callback.js` — run the flow, and Cloudflare Pages supplies the credentials.
 
-    Github will give you a Client ID, and you can generate a Client Secret at this time. You will need both.
+## 1. Create the GitHub OAuth app
 
-2. Add Client ID and Secret to your Cloudflare project
-    In your Cloudflare Pages project, go to Settings -> Environment variables. Add two environment variables, GITHUB_CLIENT_ID set to the client ID from above, and GITHUB_CLIENT_SECRET set to the secret.
+Go to Settings → Developer settings → OAuth Apps and create a new OAuth App.
 
-3. Add the files to your project
-    Take this functions directory from this repo and add it to your project at the top level. NOTE: This means the actual top-level of the project itself, not the top level of your output directory. 
+- **Application name:** anything you like.
+- **Homepage URL:** your site's URL, e.g. `https://example.com`.
+- **Redirect URI:** your site's URL too — the plain domain, e.g. `https://example.com`. GitHub accepts any redirect URI that is a subdirectory of a registered one, and the handler redirects to `https://example.com/api/callback`, so the plain domain is enough. No wildcard matching needed.
+- **Application description:** optional.
 
-    If you haven’t already installed the Decap CMS files, take the static/admin directory from this repo and add it to your static directory (for Hugo) or wherever you add files to be deployed as-is to your site. There are two files under admin, a stub HTML file that loads the CMS, and the CMS config file config.yml. You can change the name of the admin directory.
+GitHub gives you a **Client ID** and lets you generate a **Client Secret**. You need both.
 
-    The config file included here is a starter file only; you need to set this up for your site, which is beyond the scope of these instructions. However, you must set site_domain and base_url in this config to the URL of your site (like <https://example.com>). Setting auth_endpoint here is optional because the default path works for the way this repo is set up.
+## 2. Add the credentials to Cloudflare Pages
 
-4. Profit!
-    Publish your site and let Cloudflare build it. Go to /admin/ on your site, and you should see a Login with Github button, which should authenticate you to Github and launch the CMS.
+In your Cloudflare Pages project, go to Settings → Environment variables and add:
+
+- `GITHUB_CLIENT_ID` — the Client ID above
+- `GITHUB_CLIENT_SECRET` — the Client Secret above
+
+Add them to Production. Add them to the Preview environment too if you want to sign in on preview deploys.
+
+## 3. Wire the CMS config
+
+The files are already in this repo:
+
+- `functions/api/` — the two OAuth handlers, mounted at `/api/auth` and `/api/callback`.
+- `src/admin/` — the CMS. `config.yml` is a starter: set `repo` to `your-org/your-repo`, `branch` to `main`, and `base_url` to your site URL — the same domain you registered above. `auth_endpoint: /api/auth` already matches the handler's path, so you can leave it alone.
+
+Never put a secret in `config.yml` — it's served publicly once deployed.
+
+## 4. Sign in
+
+Publish your site and open `/admin/`. You should see a "Login with GitHub" button. The account signing in needs write access to the repo — the handlers request the `repo` scope.
+
+## Testing the handlers locally
+
+`bun run admin` uses decap-server's local backend and writes to your working copy, so it never exercises the OAuth flow. To run the handlers against local Functions, use Wrangler:
+
+```bash
+bun run wrangler:dev   # wrangler pages dev dist
+```
+
+Put the two variables in a `.dev.vars` file in the repo root; Wrangler reads it for local dev. Don't commit it.

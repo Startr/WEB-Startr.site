@@ -27,7 +27,20 @@ No client framework. No database. No build step for the CSS or the JS.
 ## Getting started
 
 1. **Point it at your repo.** In `src/admin/config.yml`, set `repo` to `your-org/your-repo` and `base_url` to your domain. In `src/_data/site.yaml`, set the title, description, and URL.
-2. **Set up GitHub OAuth.** Create an OAuth app, then add `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` to your Cloudflare Pages environment variables. Steps in [`functions/install.md`](functions/install.md).
+2. **Set up GitHub OAuth.** The CMS signs in with a GitHub OAuth app — the handlers in `functions/api/` run the flow, and Cloudflare Pages supplies the credentials. One-time setup:
+
+   **Create the GitHub OAuth app** — [Settings → Developer settings → OAuth Apps](https://github.com/settings/developers) → New OAuth App:
+   - Homepage URL: `https://your-domain.com`
+   - **Redirect URI: `https://your-domain.com`** — the plain domain. GitHub accepts any redirect beneath it, so the handler's `/api/callback` (hardcoded in `functions/api/auth.js`) is covered without pinning the exact path. Don't tick "Allow wildcard matching" unless you control every subdomain.
+   - Copy the **Client ID**, generate a **Client Secret**.
+
+   **Add the credentials to Cloudflare Pages** — Settings → Environment variables: `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`. Add them to Production; also Preview if you want login on preview deploys.
+
+   **Wire the config** — in `src/admin/config.yml`, set `repo` to `your-org/your-repo`, `branch` to `main`, and `base_url` to the same domain as above. `auth_endpoint: /api/auth` already matches the handler.
+
+   Login then flows: `/admin` → "Login with GitHub" → `/api/auth` → github.com → `/api/callback` → token handed to the CMS in your browser, never stored server-side.
+
+   Local `bun run admin` never hits this flow — decap-server writes to your working copy directly. To exercise the handlers locally, `bun run wrangler:dev` with a `.dev.vars` file holding the two variables. And the signing-in GitHub account needs write access to the repo, since the handlers request the `repo` scope. Full walkthrough: [`functions/install.md`](functions/install.md).
 3. **Deploy.** Point Cloudflare Pages at the repo with build command `bun run build` and output directory `dist`.
 4. **Write.** Open `/admin`, or edit the markdown in `src/posts/` directly. Both do the same thing.
 
@@ -87,6 +100,16 @@ src/eleventy.config.js
 - The startr.style link is unversioned (`https://startr.style/style.css`). Pin a version before you depend on it in production.
 - `src/admin/config.yml` is served publicly once deployed. No secrets in it.
 - Docker and `captain-definition` are here for CapRover or a VPS. Cloudflare Pages needs neither.
+
+## Other hosting and auth
+
+This starter targets Cloudflare Pages + GitHub OAuth because it's the least setup for the most capability — not the only way we run these sites.
+
+**Hosting:** the repo ships a `Dockerfile` and `captain-definition` for [CapRover](https://caprover.com) or any VPS (`make deploy`). Netlify and other static hosts work too. And hosting is coming to [startr.cloud](https://startr.cloud) soon — one-click deploys for starters like this one, so nobody has to touch Cloudflare's dashboard unless they want to.
+
+**Auth:** Netlify Identity, other Git providers, or a self-hosted gate in front of `/admin`.
+
+We use this starter ourselves — a part of our team builds sites for people, and this is what we reach for on every one. If you're in that same boat, tell us your stack and we'll wire the deploy and login that fits. Ping us at [startr.cloud](https://startr.cloud).
 
 ---
 
